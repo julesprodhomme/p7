@@ -1,0 +1,7 @@
+pandas
+streamlit
+mlflow
+scikit-learn
+imbalanced-learn
+xgboost
+matplotlib
