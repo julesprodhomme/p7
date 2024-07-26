@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/0/1c13bb2640084c1d9135976150bc2639/artifacts
+end_time: 1722007216783
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 1c13bb2640084c1d9135976150bc2639
+run_name: masked-hound-469
+run_uuid: 1c13bb2640084c1d9135976150bc2639
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1722007195551
+status: 3
+tags: []
+user_id: jules

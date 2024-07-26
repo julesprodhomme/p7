@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/0/5678e51c1dc644a581648746be454245/artifacts
+end_time: 1722007153603
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 5678e51c1dc644a581648746be454245
+run_name: enthused-donkey-60
+run_uuid: 5678e51c1dc644a581648746be454245
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1722007147541
+status: 3
+tags: []
+user_id: jules

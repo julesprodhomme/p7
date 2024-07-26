@@ -1,0 +1,13 @@
+aliases: []
+creation_timestamp: 1722007153686
+current_stage: None
+description: ''
+last_updated_timestamp: 1722007153686
+name: DummyRegressorModel
+run_id: 5678e51c1dc644a581648746be454245
+run_link: ''
+source: runs:/5678e51c1dc644a581648746be454245/model
+status: READY
+status_message: null
+user_id: null
+version: 1

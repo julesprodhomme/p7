@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/0/11279d5caf3944afb532cb473f78eebc/artifacts
+end_time: 1722007166399
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 11279d5caf3944afb532cb473f78eebc
+run_name: flawless-mule-478
+run_uuid: 11279d5caf3944afb532cb473f78eebc
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1722007157046
+status: 3
+tags: []
+user_id: jules

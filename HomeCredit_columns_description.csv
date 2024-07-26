@@ -1,0 +1,23 @@
+Unnamed: 0,Table,Row,Description,Special
+157,credit_card_balance.csv,AMT_CREDIT_LIMIT_ACTUAL,Credit card limit during the month of the previous credit,
+96,application_{train|test}.csv,OBS_60_CNT_SOCIAL_CIRCLE,How many observation of client's social surroundings with observable 60 DPD (days past due) default,
+219,installments_payments.csv,DAYS_ENTRY_PAYMENT,When was the installments of previous credit paid actually (relative to application date of current loan),time only relative to the application
+220,installments_payments.csv,AMT_INSTALMENT,What was the prescribed installment amount of previous credit on this installment,
+18,application_{train|test}.csv,NAME_HOUSING_TYPE,"What is the housing situation of the client (renting, living with parents, ...)",
+107,application_{train|test}.csv,FLAG_DOCUMENT_10,Did client provide document 10,
+174,credit_card_balance.csv,SK_DPD,DPD (Days past due) during the month on the previous credit,
+211,previous_application.csv,DAYS_LAST_DUE,Relative to application date of current application when was the last due date of the previous application,time only relative to the application
+78,application_{train|test}.csv,YEARS_BUILD_MEDI,"Normalized information about building where the client lives, What is average (_AVG suffix), modus (_MODE suffix), median (_MEDI suffix) apartment size, common area, living area, age of building, number of elevators, number of entrances, state of the building, number of floor",normalized
+144,bureau_balance.csv,STATUS,"Status of Credit Bureau loan during the month (active, closed, DPD0-30,… [C means closed, X means status unknown, 0 means no DPD, 1 means maximal did during month between 1-30, 2 means DPD 31-60,… 5 means DPD 120+ or sold or written off ] )",
+100,application_{train|test}.csv,FLAG_DOCUMENT_3,Did client provide document 3,
+33,application_{train|test}.csv,REGION_RATING_CLIENT,"Our rating of the region where client lives (1,2,3)",
+192,previous_application.csv,NAME_CASH_LOAN_PURPOSE,Purpose of the cash loan,
+12,application_{train|test}.csv,AMT_ANNUITY,Loan annuity,
+70,application_{train|test}.csv,LANDAREA_MODE,"Normalized information about building where the client lives, What is average (_AVG suffix), modus (_MODE suffix), median (_MEDI suffix) apartment size, common area, living area, age of building, number of elevators, number of entrances, state of the building, number of floor",normalized
+181,previous_application.csv,AMT_CREDIT,"Final credit amount on the previous application. This differs from AMT_APPLICATION in a way that the AMT_APPLICATION is the amount for which the client initially applied for, but during our approval process he could have received different amount - AMT_CREDIT",
+185,previous_application.csv,HOUR_APPR_PROCESS_START,Approximately at what day hour did the client apply for the previous application,rounded
+21,application_{train|test}.csv,DAYS_EMPLOYED,How many days before the application the person started current employment,time only relative to the application
+159,credit_card_balance.csv,AMT_DRAWINGS_CURRENT,Amount drawing during the month of the previous credit,
+69,application_{train|test}.csv,FLOORSMIN_MODE,"Normalized information about building where the client lives, What is average (_AVG suffix), modus (_MODE suffix), median (_MEDI suffix) apartment size, common area, living area, age of building, number of elevators, number of entrances, state of the building, number of floor",normalized
+215,installments_payments.csv,SK_ID_CURR,ID of loan in our sample,hashed
+98,application_{train|test}.csv,DAYS_LAST_PHONE_CHANGE,How many days before application did client change phone,

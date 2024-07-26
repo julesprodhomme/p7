@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/0/15712bd9a8dd4527a15d7b82979e8981/artifacts
+end_time: 1722007195537
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 15712bd9a8dd4527a15d7b82979e8981
+run_name: clumsy-crow-427
+run_uuid: 15712bd9a8dd4527a15d7b82979e8981
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1722007192726
+status: 3
+tags: []
+user_id: jules

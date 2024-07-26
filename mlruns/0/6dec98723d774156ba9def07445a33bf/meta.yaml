@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/0/6dec98723d774156ba9def07445a33bf/artifacts
+end_time: 1722007169896
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 6dec98723d774156ba9def07445a33bf
+run_name: blushing-sheep-280
+run_uuid: 6dec98723d774156ba9def07445a33bf
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1722007166447
+status: 3
+tags: []
+user_id: jules

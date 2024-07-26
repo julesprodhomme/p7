@@ -1,0 +1,13 @@
+aliases: []
+creation_timestamp: 1722007169911
+current_stage: None
+description: ''
+last_updated_timestamp: 1722007169911
+name: SVMModel
+run_id: 6dec98723d774156ba9def07445a33bf
+run_link: ''
+source: runs:/6dec98723d774156ba9def07445a33bf/model
+status: READY
+status_message: null
+user_id: null
+version: 1
