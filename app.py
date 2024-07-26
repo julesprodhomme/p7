@@ -1,34 +1,20 @@
 import pandas as pd
 import streamlit as st
-import mlflow
-import mlflow.sklearn
-import base64
 import pickle
+import base64
 
-# Configurer l'URI de suivi MLflow
-mlflow.set_tracking_uri("http://localhost:5000")
+# Chargement du modèle depuis le fichier pickle
+pickle_filename = 'XGBoostModel.pkl'
 
-# Chargement du modèle complet (pipeline)
-model_name = "XGBoostModel"
-model_version = "1"  # Mettez à jour si vous avez plusieurs versions
-model_uri = f"models:/{model_name}/{model_version}"
-
-def load_model(uri):
+def load_model(filename):
     try:
-        # Tentative de chargement depuis MLflow
-        return mlflow.sklearn.load_model(uri)
+        with open(filename, 'rb') as file:
+            return pickle.load(file)
     except Exception as e:
-        st.error(f"Erreur lors du chargement du modèle depuis MLflow: {e}")
-        try:
-            # Tentative de chargement depuis un fichier local
-            st.warning("Tentative de chargement du modèle depuis un fichier local.")
-            with open('XGBoostModel.pkl', 'rb') as model_file:
-                return pickle.load(model_file)
-        except Exception as e:
-            st.error(f"Erreur lors du chargement du modèle depuis un fichier local: {e}")
-            return None
+        st.error(f"Erreur lors du chargement du modèle: {e}")
+        return None
 
-model = load_model(model_uri)
+model = load_model(pickle_filename)
 
 # Vérifiez si le modèle a été chargé avec succès
 if model is None:
