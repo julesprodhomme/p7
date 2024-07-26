@@ -4,7 +4,6 @@ import mlflow
 import mlflow.sklearn
 import base64
 import pickle
-from io import StringIO
 
 # Configurer l'URI de suivi MLflow
 mlflow.set_tracking_uri("http://localhost:5000")
@@ -16,11 +15,12 @@ model_uri = f"models:/{model_name}/{model_version}"
 
 def load_model(uri):
     try:
+        # Tentative de chargement depuis MLflow
         return mlflow.sklearn.load_model(uri)
     except Exception as e:
         st.error(f"Erreur lors du chargement du modèle depuis MLflow: {e}")
-        # Essayer de charger le modèle depuis un fichier local en cas d'échec
         try:
+            # Tentative de chargement depuis un fichier local
             st.warning("Tentative de chargement du modèle depuis un fichier local.")
             with open('XGBoostModel.pkl', 'rb') as model_file:
                 return pickle.load(model_file)
@@ -149,21 +149,4 @@ def main():
 
     st.subheader('Explication de la Prédiction')
 
-    # Affichage de l'explication de la prédiction (si applicable)
-    if st.checkbox("Afficher l'explication de la prédiction"):
-        feat_number = st.slider("Sélectionner le nombre de paramètres pour expliquer la prédiction", 1, 30, 10)
-
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.header("Explication Locale")
-            base64_image = request_shap_waterfall_chart(client_id, feat_number)
-            show_image_from_base64(base64_image)
-
-        with col2:
-            st.header("Explication Globale")
-            base64_image = request_shap_waterfall_chart_global(feat_number)
-            show_image_from_base64(base64_image)
-
-if __name__ == '__main__':
-    main()
+    # Affichage de l'explication de
