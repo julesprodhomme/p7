@@ -3,6 +3,7 @@ import streamlit as st
 import mlflow
 import mlflow.sklearn
 import base64
+import pickle
 from io import StringIO
 
 # Configurer l'URI de suivi MLflow
@@ -17,8 +18,15 @@ def load_model(uri):
     try:
         return mlflow.sklearn.load_model(uri)
     except Exception as e:
-        st.error(f"Erreur lors du chargement du modèle: {e}")
-        return None
+        st.error(f"Erreur lors du chargement du modèle depuis MLflow: {e}")
+        # Essayer de charger le modèle depuis un fichier local en cas d'échec
+        try:
+            st.warning("Tentative de chargement du modèle depuis un fichier local.")
+            with open('XGBoostModel.pkl', 'rb') as model_file:
+                return pickle.load(model_file)
+        except Exception as e:
+            st.error(f"Erreur lors du chargement du modèle depuis un fichier local: {e}")
+            return None
 
 model = load_model(model_uri)
 
