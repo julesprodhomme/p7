@@ -149,4 +149,21 @@ def main():
 
     st.subheader('Explication de la Prédiction')
 
-    # Affichage de l'explication de
+    # Affichage de l'explication de la prédiction (si applicable)
+    if st.checkbox("Afficher l'explication de la prédiction"):
+        feat_number = st.slider("Sélectionner le nombre de paramètres pour expliquer la prédiction", 1, 30, 10)
+
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.header("Explication Locale")
+            base64_image = request_shap_waterfall_chart(client_id, feat_number)
+            show_image_from_base64(base64_image)
+
+        with col2:
+            st.header("Explication Globale")
+            base64_image = request_shap_waterfall_chart_global(feat_number)
+            show_image_from_base64(base64_image)
+
+if __name__ == '__main__':
+    main()
