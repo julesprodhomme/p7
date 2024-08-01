@@ -3,7 +3,6 @@ import streamlit as st
 import pickle
 import shap
 import matplotlib.pyplot as plt
-import numpy as np
 from imblearn.pipeline import Pipeline
 
 # Chargement du modèle depuis un fichier .pkl
@@ -37,8 +36,22 @@ except Exception as e:
     st.error(f"Erreur lors du chargement des données: {e}")
     st.stop()
 
-X_train_smote = df.drop(columns=['TARGET'])  # Assurez-vous de retirer la colonne TARGET si elle est présente
-y_train_smote = df['TARGET']
+# Dictionnaire de mappage des noms de colonnes
+column_mapping = {
+    'AMT_INCOME_TOTAL': "Revenu total",
+    'CNT_CHILDREN': "Nombre d'enfants",
+    'CODE_GENDER': "Genre",
+    'FLAG_OWN_CAR': "Possède un véhicule",
+    'FLAG_OWN_REALTY': "Propriétaire immobilier",
+    'NAME_EDUCATION_TYPE': "Niveau académique",
+    'NAME_FAMILY_STATUS': "Statut familial",
+    'NAME_HOUSING_TYPE': "Type de logement",
+    'NAME_INCOME_TYPE': "Type de revenu",
+    'OCCUPATION_TYPE': "Emploi"
+}
+
+# Colonnes à afficher sur le dashboard
+display_columns = list(column_mapping.keys())
 
 # Fonction pour obtenir les données du client en fonction de l'identifiant
 def get_client_data(client_id):
@@ -64,36 +77,21 @@ def predict(input_data):
     return predictions[0], probabilities[0]
 
 # Fonction pour afficher les explications SHAP
-def show_shap_explanation(X_train, y_train, model):
+def show_shap_explanation(input_data, xgb_model):
     try:
-        # Extraire le modèle XGBoost du pipeline
-        xgb_model = model.named_steps['xgbclassifier'] if isinstance(model, Pipeline) else model
-        
-        # Calculer les valeurs SHAP
-        explainer = shap.Explainer(xgb_model)
-        shap_values = explainer(X_train)
-        
-        # Convertir les valeurs SHAP en DataFrame
-        shap_df = pd.DataFrame({
-            'Feature': X_train.columns,
-            'Importance': np.abs(shap_values.values).mean(axis=0)
-        })
-        
-        # Trier les caractéristiques par importance
-        shap_df = shap_df.sort_values(by='Importance', ascending=False)
-        
-        # Afficher les 10 caractéristiques les plus importantes
-        top_10_shap = shap_df.head(10)
-        
-        # Visualisation des importances SHAP
-        st.subheader("Top 10 des caractéristiques les plus importantes selon SHAP")
-        plt.figure(figsize=(12, 8))
-        plt.barh(top_10_shap['Feature'], top_10_shap['Importance'], color='skyblue')
-        plt.xlabel('Importance')
-        plt.title('Top 10 des caractéristiques les plus importantes selon SHAP')
-        plt.gca().invert_yaxis()
+        # Créer un explainer SHAP pour le modèle XGBoost
+        explainer = shap.TreeExplainer(xgb_model)
+        shap_values = explainer.shap_values(pd.DataFrame([input_data]))
+
+        st.subheader("Explication Locale")
+        plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
+        shap.waterfall_plot(shap_values[0][0], show=False)
         st.pyplot(plt.gcf())
-        
+
+        st.subheader("Explication Globale")
+        plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
+        shap.summary_plot(shap_values, pd.DataFrame([input_data]), plot_type="bar", show=False)
+        st.pyplot(plt.gcf())
     except Exception as e:
         st.error(f"Erreur avec SHAP: {e}")
 
@@ -151,8 +149,8 @@ def main():
             elif prediction == 0:
                 st.sidebar.success("Crédit accordé !")
 
-            # Afficher l'explication des caractéristiques importantes
-            show_shap_explanation(X_train_smote, y_train_smote, model)
+            # Afficher l'explication de la prédiction
+            show_shap_explanation(inputs, xgb_model)
 
 if __name__ == '__main__':
     main()
