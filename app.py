@@ -85,8 +85,13 @@ def show_feature_importance(xgb_model):
         # Extraire les importances des caractéristiques
         feature_importances = xgb_model.feature_importances_
 
+        # Récupérer les noms des caractéristiques
+        if hasattr(xgb_model, 'feature_names_in_'):
+            feature_names = xgb_model.feature_names_in_
+        else:
+            feature_names = [f'Feature {i}' for i in range(len(feature_importances))]
+
         # Créer un DataFrame pour les importances
-        feature_names = xgb_model.get_booster().get_feature_names()
         importance_df = pd.DataFrame({
             'Feature': feature_names,
             'Importance': feature_importances
