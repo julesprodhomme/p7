@@ -86,7 +86,7 @@ def show_shap_explanation(input_data, xgb_model):
         st.header("2")
         
         # Préparer les données pour SHAP
-        st.header(xgb_model.feature_names_in_)
+        #st.header(xgb_model.feature_names_in_)
         #input_df = pd.DataFrame([input_data], columns=xgb_model.feature_names_in_)
         input_df = pd.DataFrame(input_data)
 
