@@ -83,7 +83,12 @@ def show_shap_explanation(input_data, xgb_model):
         explainer = shap.TreeExplainer(xgb_model)
         
         # Préparer les données pour SHAP
-        input_df = pd.DataFrame([input_data], columns=xgb_model.feature_names_in_)
+        if hasattr(xgb_model, 'feature_names_in_'):
+            feature_names = xgb_model.feature_names_in_
+        else:
+            feature_names = [f'Feature {i}' for i in range(len(input_data))]
+
+        input_df = pd.DataFrame([input_data], columns=feature_names)
         
         # Calculer les valeurs SHAP
         shap_values = explainer(input_df)
@@ -162,7 +167,7 @@ def main():
         st.sidebar.dataframe(display_data, use_container_width=True)
         
         # Préparer les données pour la prédiction
-        inputs = {feature: client_data.get(feature, 0.0) for feature in model.feature_names_in_}
+        inputs = {feature: client_data.get(feature, 0.0) for feature in (model.feature_names_in_ if hasattr(model, 'feature_names_in_') else display_columns)}
         
         # Bouton pour faire la prédiction
         if st.sidebar.button("Faire une prédiction"):
@@ -187,7 +192,8 @@ def main():
                 show_feature_importance(xgb_model)
 
             # Afficher l'explication de la prédiction
-            show_shap_explanation(inputs, xgb_model)
+            if st.sidebar.checkbox('Afficher l\'explication SHAP'):
+                show_shap_explanation(inputs, xgb_model)
 
 if __name__ == '__main__':
     main()
