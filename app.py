@@ -1,11 +1,11 @@
 import pandas as pd
 import streamlit as st
-import mlflow
-import mlflow.sklearn
-import base64
+import xgboost as xgb
 import shap
+import base64
+from io import StringIO
+import pickle
 import matplotlib.pyplot as plt
-
 
 # Chargement du modèle XGBoost depuis le fichier pickle
 model_path = 'XGBoostModel.pkl'
@@ -59,7 +59,7 @@ def get_client_data(client_id):
     client_data = client_data.drop(columns=['SK_ID_CURR', 'TARGET']).iloc[0].to_dict()
     
     # Ajouter des colonnes manquantes avec des valeurs par défaut si nécessaire
-    for feature in model.feature_names_in_:
+    for feature in model.get_booster().feature_names:
         if feature not in client_data:
             client_data[feature] = 0.0
     
@@ -72,20 +72,51 @@ def predict(input_data):
     probabilities = model.predict_proba(df)[:, 1]
     return predictions[0], probabilities[0]
 
-# Fonction pour afficher les explications SHAP
-def show_shap_explanation(input_data, model):
-    explainer = shap.Explainer(model.named_steps['xgbclassifier'])
-    shap_values = explainer(pd.DataFrame([input_data]))
-    
-    st.subheader("Explication Locale")
-    plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
-    shap.waterfall_plot(shap_values[0], show=False)
-    st.pyplot(plt.gcf())
+# Fonction pour afficher les images base64 (pour les explications)
+def show_image_from_base64(base64_image):
+    image = base64.b64decode(base64_image)
+    st.image(image)
 
-    st.subheader("Explication Globale")
-    plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
-    shap.summary_plot(shap_values, pd.DataFrame([input_data]), plot_type="bar", show=False)
-    st.pyplot(plt.gcf())
+# Fonction pour obtenir l'explication locale de SHAP
+def request_shap_waterfall_chart(client_id, feat_number):
+    # Obtenir les valeurs SHAP pour le client
+    client_data = get_client_data(client_id)
+    df_client = pd.DataFrame([client_data])
+    
+    explainer = shap.Explainer(model)
+    shap_values = explainer(df_client)
+    
+    # Créer un graphique SHAP local
+    plt.figure(figsize=(6, 4))
+    shap.waterfall_plot(shap_values[0])
+    
+    # Convertir le graphique en base64
+    buf = StringIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.getvalue()).decode()
+    buf.close()
+    
+    return img_base64
+
+# Fonction pour obtenir l'explication globale de SHAP
+def request_shap_waterfall_chart_global(feat_number):
+    # Obtenir les valeurs SHAP globales
+    explainer = shap.Explainer(model)
+    shap_values = explainer(df.drop(columns=['TARGET']))
+    
+    # Créer un graphique SHAP global
+    plt.figure(figsize=(6, 4))
+    shap.summary_plot(shap_values, df.drop(columns=['TARGET']), max_display=feat_number)
+    
+    # Convertir le graphique en base64
+    buf = StringIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.getvalue()).decode()
+    buf.close()
+    
+    return img_base64
 
 # Interface Streamlit
 def main():
@@ -121,7 +152,7 @@ def main():
         st.sidebar.dataframe(display_data, use_container_width=True)
         
         # Préparer les données pour la prédiction
-        inputs = {feature: client_data.get(feature, 0.0) for feature in model.feature_names_in_}
+        inputs = {feature: client_data.get(feature, 0.0) for feature in model.get_booster().feature_names}
         
         # Bouton pour faire la prédiction
         if st.sidebar.button("Faire une prédiction"):
@@ -140,9 +171,22 @@ def main():
                 st.sidebar.error("Crédit refusé !")
             elif prediction == 0:
                 st.sidebar.success("Crédit accordé !")
-
-            # Afficher l'explication de la prédiction
-            show_shap_explanation(inputs, model)
+            
+            ##########
+            # EXPOSITION DES SHAP #
+            ##########
+            feat_number = min(30, len(df.columns) - 1)
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.header("Explication Locale")
+                base64_image = request_shap_waterfall_chart(client_id, feat_number)
+                show_image_from_base64(base64_image)
+                
+            with col2:
+                st.header("Explication Globale")
+                base64_image = request_shap_waterfall_chart_global(feat_number)
+                show_image_from_base64(base64_image)
 
 if __name__ == '__main__':
     main()
