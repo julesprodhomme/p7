@@ -3,6 +3,7 @@ import streamlit as st
 import pickle
 import shap
 import matplotlib.pyplot as plt
+from imblearn.pipeline import Pipeline
 
 # Chargement du modèle depuis un fichier .pkl
 model_path = 'XGBoostModel.pkl'
@@ -20,6 +21,12 @@ model = load_model(model_path)
 # Vérifiez si le modèle a été chargé avec succès
 if model is None:
     st.stop()
+
+# Vérifier si le modèle est un pipeline et extraire le modèle XGBoost
+if isinstance(model, Pipeline):
+    xgb_model = model.named_steps['xgbclassifier']  # Assurez-vous que le nom correspond à votre pipeline
+else:
+    xgb_model = model
 
 # Chargement des données depuis le CSV
 dataset_path = 'X_train_smote.csv'
@@ -70,10 +77,10 @@ def predict(input_data):
     return predictions[0], probabilities[0]
 
 # Fonction pour afficher les explications SHAP
-def show_shap_explanation(input_data, model):
+def show_shap_explanation(input_data, xgb_model):
     try:
         # Créer un explainer SHAP pour le modèle XGBoost
-        explainer = shap.TreeExplainer(model)
+        explainer = shap.TreeExplainer(xgb_model)
         shap_values = explainer.shap_values(pd.DataFrame([input_data]))
 
         st.subheader("Explication Locale")
@@ -143,7 +150,7 @@ def main():
                 st.sidebar.success("Crédit accordé !")
 
             # Afficher l'explication de la prédiction
-            show_shap_explanation(inputs, model)
+            show_shap_explanation(inputs, xgb_model)
 
 if __name__ == '__main__':
     main()
