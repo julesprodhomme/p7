@@ -1,9 +1,9 @@
 import pandas as pd
 import streamlit as st
 import pickle
-import shap
 import matplotlib.pyplot as plt
 from imblearn.pipeline import Pipeline
+import xgboost as xgb
 
 # Chargement du modèle depuis un fichier .pkl
 model_path = 'XGBoostModel.pkl'
@@ -36,69 +36,28 @@ except Exception as e:
     st.error(f"Erreur lors du chargement des données: {e}")
     st.stop()
 
-# Dictionnaire de mappage des noms de colonnes
-column_mapping = {
-    'AMT_INCOME_TOTAL': "Revenu total",
-    'CNT_CHILDREN': "Nombre d'enfants",
-    'CODE_GENDER': "Genre",
-    'FLAG_OWN_CAR': "Possède un véhicule",
-    'FLAG_OWN_REALTY': "Propriétaire immobilier",
-    'NAME_EDUCATION_TYPE': "Niveau académique",
-    'NAME_FAMILY_STATUS': "Statut familial",
-    'NAME_HOUSING_TYPE': "Type de logement",
-    'NAME_INCOME_TYPE': "Type de revenu",
-    'OCCUPATION_TYPE': "Emploi"
-}
-
-# Colonnes à afficher sur le dashboard
-display_columns = list(column_mapping.keys())
-
-# Fonction pour obtenir les données du client en fonction de l'identifiant
-def get_client_data(client_id):
-    client_data = df[df['SK_ID_CURR'] == client_id]
-    
-    if client_data.empty:
-        return {}
-    
-    client_data = client_data.drop(columns=['SK_ID_CURR', 'TARGET']).iloc[0].to_dict()
-    
-    # Ajouter des colonnes manquantes avec des valeurs par défaut si nécessaire
-    for feature in model.feature_names_in_:
-        if feature not in client_data:
-            client_data[feature] = 0.0
-    
-    return client_data
-
-# Fonction pour faire des prédictions
-def predict(input_data):
-    df = pd.DataFrame([input_data])
-    predictions = model.predict(df)
-    probabilities = model.predict_proba(df)[:, 1]
-    return predictions[0], probabilities[0]
-
-# Fonction pour afficher les explications SHAP
-def show_shap_explanation(input_data, xgb_model):
+# Fonction pour afficher l'importance des caractéristiques
+def show_feature_importance(xgb_model):
     try:
-        # Créer un explainer SHAP pour le modèle XGBoost
-        explainer = shap.TreeExplainer(xgb_model)
-        
-        # Préparer les données pour SHAP
-        input_df = pd.DataFrame([input_data], columns=xgb_model.feature_names_in_)
-        
-        # Calculer les valeurs SHAP
-        shap_values = explainer(input_df)
-        
-        st.subheader("Explication Locale")
-        plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
-        shap.waterfall_plot(shap_values[0])
-        st.pyplot(plt.gcf())
-        
-        st.subheader("Explication Globale")
-        plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
-        shap.summary_plot(shap_values, input_df, plot_type="bar", show=False)
+        # Extraire les importances des caractéristiques
+        feature_importances = xgb_model.feature_importances_
+
+        # Créer un DataFrame pour les importances
+        feature_names = xgb_model.get_booster().get_feature_names()
+        importance_df = pd.DataFrame({
+            'Feature': feature_names,
+            'Importance': feature_importances
+        }).sort_values(by='Importance', ascending=False)
+
+        st.subheader("Importance des Caractéristiques")
+        plt.figure(figsize=(10, 8))
+        plt.barh(importance_df['Feature'], importance_df['Importance'], color='skyblue')
+        plt.xlabel('Importance')
+        plt.title('Importance des Caractéristiques selon XGBoost')
+        plt.gca().invert_yaxis()
         st.pyplot(plt.gcf())
     except Exception as e:
-        st.error(f"Erreur avec SHAP: {e}")
+        st.error(f"Erreur avec l'importance des caractéristiques: {e}")
 
 # Interface Streamlit
 def main():
@@ -154,8 +113,8 @@ def main():
             elif prediction == 0:
                 st.sidebar.success("Crédit accordé !")
 
-            # Afficher l'explication de la prédiction
-            show_shap_explanation(inputs, xgb_model)
+            # Afficher l'importance des caractéristiques
+            show_feature_importance(xgb_model)
 
 if __name__ == '__main__':
     main()
