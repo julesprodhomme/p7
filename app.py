@@ -90,7 +90,6 @@ def show_shap_explanation(input_data, xgb_model):
         # Préparer les données pour SHAP
         #st.header(xgb_model.feature_names_in_)
         #input_df = pd.DataFrame([input_data], columns=xgb_model.feature_names_in_)
-        input_df = pd.DataFrame(input_data)
 
         st.header("3")
         
@@ -106,7 +105,7 @@ def show_shap_explanation(input_data, xgb_model):
         
         st.subheader("Explication Globale")
         plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
-        shap.summary_plot(shap_values, input_df, plot_type="bar", show=False)
+        shap.summary_plot(shap_values, pd.DataFrame([input_data]), plot_type="bar", show=False)
         st.pyplot(plt.gcf())
         st.header("6")
     except Exception as e:
