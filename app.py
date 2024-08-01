@@ -1,9 +1,9 @@
 import pandas as pd
 import streamlit as st
 import pickle
+import shap
 import matplotlib.pyplot as plt
 from imblearn.pipeline import Pipeline
-import xgboost as xgb
 
 # Chargement du modèle depuis un fichier .pkl
 model_path = 'XGBoostModel.pkl'
@@ -32,8 +32,6 @@ else:
 dataset_path = 'X_train_smote.csv'
 try:
     df = pd.read_csv(dataset_path)
-    if 'SK_ID_CURR' not in df.columns:
-        raise ValueError("La colonne 'SK_ID_CURR' est manquante dans le fichier CSV.")
 except Exception as e:
     st.error(f"Erreur lors du chargement des données: {e}")
     st.stop()
@@ -60,7 +58,6 @@ def get_client_data(client_id):
     client_data = df[df['SK_ID_CURR'] == client_id]
     
     if client_data.empty:
-        st.error(f"Identifiant de client non trouvé: {client_id}")
         return {}
     
     client_data = client_data.drop(columns=['SK_ID_CURR', 'TARGET']).iloc[0].to_dict()
@@ -79,33 +76,29 @@ def predict(input_data):
     probabilities = model.predict_proba(df)[:, 1]
     return predictions[0], probabilities[0]
 
-# Fonction pour afficher l'importance des caractéristiques
-def show_feature_importance(xgb_model):
+# Fonction pour afficher les explications SHAP
+def show_shap_explanation(input_data, xgb_model):
     try:
-        # Extraire les importances des caractéristiques
-        feature_importances = xgb_model.feature_importances_
-
-        # Récupérer les noms des caractéristiques
-        if hasattr(xgb_model, 'feature_names_in_'):
-            feature_names = xgb_model.feature_names_in_
-        else:
-            feature_names = [f'Feature {i}' for i in range(len(feature_importances))]
-
-        # Créer un DataFrame pour les importances
-        importance_df = pd.DataFrame({
-            'Feature': feature_names,
-            'Importance': feature_importances
-        }).sort_values(by='Importance', ascending=False)
-
-        st.subheader("Importance des Caractéristiques")
-        plt.figure(figsize=(10, 8))
-        plt.barh(importance_df['Feature'], importance_df['Importance'], color='skyblue')
-        plt.xlabel('Importance')
-        plt.title('Importance des Caractéristiques selon XGBoost')
-        plt.gca().invert_yaxis()
+        # Créer un explainer SHAP pour le modèle XGBoost
+        explainer = shap.TreeExplainer(xgb_model)
+        
+        # Préparer les données pour SHAP
+        input_df = pd.DataFrame([input_data], columns=xgb_model.feature_names_in_)
+        
+        # Calculer les valeurs SHAP
+        shap_values = explainer(input_df)
+        
+        st.subheader("Explication Locale")
+        plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
+        shap.waterfall_plot(shap_values[0])
+        st.pyplot(plt.gcf())
+        
+        st.subheader("Explication Globale")
+        plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
+        shap.summary_plot(shap_values, input_df, plot_type="bar", show=False)
         st.pyplot(plt.gcf())
     except Exception as e:
-        st.error(f"Erreur avec l'importance des caractéristiques: {e}")
+        st.error(f"Erreur avec SHAP: {e}")
 
 # Interface Streamlit
 def main():
@@ -128,10 +121,6 @@ def main():
     if client_id:
         # Obtenez les données du client
         client_data = get_client_data(client_id)
-        
-        # Vérifier si client_data est valide
-        if not client_data:
-            return
         
         # Filtrer les données du client pour ne garder que les colonnes désirées
         filtered_data = {key: client_data.get(key, None) for key in display_columns}
@@ -165,8 +154,8 @@ def main():
             elif prediction == 0:
                 st.sidebar.success("Crédit accordé !")
 
-            # Afficher l'importance des caractéristiques
-            show_feature_importance(xgb_model)
+            # Afficher l'explication de la prédiction
+            show_shap_explanation(inputs, xgb_model)
 
 if __name__ == '__main__':
     main()
