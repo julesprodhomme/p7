@@ -23,10 +23,12 @@ if model is None:
     st.stop()
 
 # Vérifier si le modèle est un pipeline et extraire le modèle XGBoost
-#if isinstance(model, Pipeline):
-    #xgb_model = model.named_steps['xgbclassifier']  # Assurez-vous que le nom correspond à votre pipeline
-#else:
-xgb_model = model
+    
+if isinstance(model, Pipeline):
+    xgb_model = model.named_steps['xgbclassifier']  # Assurez-vous que le nom correspond à votre pipeline
+
+else:
+    xgb_model = model
 
 # Chargement des données depuis le CSV
 dataset_path = 'X_train_smote.csv'
