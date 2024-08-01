@@ -1,20 +1,27 @@
 import pandas as pd
 import streamlit as st
-import pickle
+import mlflow
+import mlflow.sklearn
 import base64
+import shap
+import matplotlib.pyplot as plt
 
-# Chargement du modèle depuis le fichier pickle
-pickle_filename = 'XGBoostModel.pkl'
+# Configurer l'URI de suivi MLflow
+mlflow.set_tracking_uri("http://localhost:5000")
 
-def load_model(filename):
+# Chargement du modèle complet (pipeline)
+model_name = "XGBoostModel"
+model_version = "1"  # Mettez à jour si vous avez plusieurs versions
+model_uri = f"models:/{model_name}/{model_version}"
+
+def load_model(uri):
     try:
-        with open(filename, 'rb') as file:
-            return pickle.load(file)
+        return mlflow.sklearn.load_model(uri)
     except Exception as e:
         st.error(f"Erreur lors du chargement du modèle: {e}")
         return None
 
-model = load_model(pickle_filename)
+model = load_model(model_uri)
 
 # Vérifiez si le modèle a été chargé avec succès
 if model is None:
@@ -68,10 +75,20 @@ def predict(input_data):
     probabilities = model.predict_proba(df)[:, 1]
     return predictions[0], probabilities[0]
 
-# Fonction pour afficher les images base64 (pour les explications)
-def show_image_from_base64(base64_image):
-    image = base64.b64decode(base64_image)
-    st.image(image)
+# Fonction pour afficher les explications SHAP
+def show_shap_explanation(input_data, model):
+    explainer = shap.Explainer(model.named_steps['xgbclassifier'])
+    shap_values = explainer(pd.DataFrame([input_data]))
+    
+    st.subheader("Explication Locale")
+    plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
+    shap.waterfall_plot(shap_values[0], show=False)
+    st.pyplot(plt.gcf())
+
+    st.subheader("Explication Globale")
+    plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
+    shap.summary_plot(shap_values, pd.DataFrame([input_data]), plot_type="bar", show=False)
+    st.pyplot(plt.gcf())
 
 # Interface Streamlit
 def main():
@@ -127,29 +144,8 @@ def main():
             elif prediction == 0:
                 st.sidebar.success("Crédit accordé !")
 
-    ############
-    # PAGE PRINCIPALE #
-    ############
-    st.write(" ") # espace
-    st.write(" ") # espace
-
-    st.subheader('Explication de la Prédiction')
-
-    # Affichage de l'explication de la prédiction (si applicable)
-    if st.checkbox("Afficher l'explication de la prédiction"):
-        feat_number = st.slider("Sélectionner le nombre de paramètres pour expliquer la prédiction", 1, 30, 10)
-
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.header("Explication Locale")
-            base64_image = request_shap_waterfall_chart(client_id, feat_number)
-            show_image_from_base64(base64_image)
-
-        with col2:
-            st.header("Explication Globale")
-            base64_image = request_shap_waterfall_chart_global(feat_number)
-            show_image_from_base64(base64_image)
+            # Afficher l'explication de la prédiction
+            show_shap_explanation(inputs, model)
 
 if __name__ == '__main__':
     main()
