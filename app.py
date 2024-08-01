@@ -94,7 +94,7 @@ def show_shap_explanation(input_data, xgb_model):
         st.header("3")
         
         # Calculer les valeurs SHAP
-        shap_values = explainer(input_data)
+        shap_values = explainer(pd.DataFrame([input_data]))
         st.header("4")
         
         st.subheader("Explication Locale")
