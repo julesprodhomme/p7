@@ -6,20 +6,12 @@ import base64
 import shap
 import matplotlib.pyplot as plt
 
-# Configurer l'URI de suivi MLflow
-mlflow.set_tracking_uri("http://localhost:5000")
+
 
 # Chargement du modèle complet (pipeline)
 model_name = "XGBoostModel"
 model_version = "1"  # Mettez à jour si vous avez plusieurs versions
 model_uri = f"models:/{model_name}/{model_version}"
-
-def load_model(uri):
-    try:
-        return mlflow.sklearn.load_model(uri)
-    except Exception as e:
-        st.error(f"Erreur lors du chargement du modèle: {e}")
-        return None
 
 model = load_model(model_uri)
 
