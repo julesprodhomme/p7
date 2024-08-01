@@ -1,25 +1,15 @@
 import pandas as pd
 import streamlit as st
-import xgboost as xgb
-import shap
+import mlflow
+import mlflow.sklearn
 import base64
-from io import StringIO
-import pickle
+import shap
 import matplotlib.pyplot as plt
-import numpy as np
 
-# Chargement du modèle XGBoost depuis le fichier pickle
-model_path = 'XGBoostModel.pkl'
-def load_model(path):
-    try:
-        with open(path, 'rb') as file:
-            model = pickle.load(file)
-        return model
-    except Exception as e:
-        st.error(f"Erreur lors du chargement du modèle: {e}")
-        return None
 
-model = load_model(model_path)
+# Chargement du modèle complet (pipeline)
+model_name = "XGBoostModel.pkl"
+
 
 # Vérifiez si le modèle a été chargé avec succès
 if model is None:
@@ -60,12 +50,7 @@ def get_client_data(client_id):
     client_data = client_data.drop(columns=['SK_ID_CURR', 'TARGET']).iloc[0].to_dict()
     
     # Ajouter des colonnes manquantes avec des valeurs par défaut si nécessaire
-    if hasattr(model, 'feature_names_in_'):
-        feature_names = model.feature_names_in_
-    else:
-        feature_names = df.drop(columns=['SK_ID_CURR', 'TARGET']).columns.tolist()
-    
-    for feature in feature_names:
+    for feature in model.feature_names_in_:
         if feature not in client_data:
             client_data[feature] = 0.0
     
@@ -78,52 +63,30 @@ def predict(input_data):
     probabilities = model.predict_proba(df)[:, 1]
     return predictions[0], probabilities[0]
 
-# Fonction pour afficher les images base64 (pour les explications)
-def show_image_from_base64(base64_image):
-    image = base64.b64decode(base64_image)
-    st.image(image)
+# Fonction pour afficher les explications SHAP
+def show_shap_explanation(input_data, model):
+    try:
+        # Si le modèle est un pipeline, utiliser l'étape XGBoost
+        if hasattr(model, 'named_steps') and 'xgbclassifier' in model.named_steps:
+            xgb_model = model.named_steps['xgbclassifier']
+        else:
+            xgb_model = model
 
-# Fonction pour obtenir l'explication locale de SHAP
-def request_shap_waterfall_chart(client_id, feat_number):
-    # Obtenir les valeurs SHAP pour le client
-    client_data = get_client_data(client_id)
-    df_client = pd.DataFrame([client_data])
-    
-    # Utiliser TreeExplainer pour le modèle XGBoost
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer(df_client)
-    
-    # Créer un graphique SHAP local
-    plt.figure(figsize=(6, 4))
-    shap.waterfall_plot(shap_values[0])
-    
-    # Convertir le graphique en base64
-    buf = StringIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    img_base64 = base64.b64encode(buf.getvalue()).decode()
-    buf.close()
-    
-    return img_base64
+        # Créer un explainer SHAP pour le modèle XGBoost
+        explainer = shap.Explainer(xgb_model)
+        shap_values = explainer(pd.DataFrame([input_data]))
 
-# Fonction pour obtenir l'explication globale de SHAP
-def request_shap_summary_plot(feat_number):
-    # Utiliser TreeExplainer pour le modèle XGBoost
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(df.drop(columns=['TARGET']))
-    
-    # Créer un graphique SHAP global
-    plt.figure(figsize=(6, 4))
-    shap.summary_plot(shap_values, df.drop(columns=['TARGET']), max_display=feat_number)
-    
-    # Convertir le graphique en base64
-    buf = StringIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    img_base64 = base64.b64encode(buf.getvalue()).decode()
-    buf.close()
-    
-    return img_base64
+        st.subheader("Explication Locale")
+        plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
+        shap.waterfall_plot(shap_values[0], show=False)
+        st.pyplot(plt.gcf())
+
+        st.subheader("Explication Globale")
+        plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
+        shap.summary_plot(shap_values, pd.DataFrame([input_data]), plot_type="bar", show=False)
+        st.pyplot(plt.gcf())
+    except Exception as e:
+        st.error(f"Erreur avec SHAP: {e}")
 
 # Interface Streamlit
 def main():
@@ -159,41 +122,4 @@ def main():
         st.sidebar.dataframe(display_data, use_container_width=True)
         
         # Préparer les données pour la prédiction
-        inputs = {feature: client_data.get(feature, 0.0) for feature in model.feature_names_in_}
-        
-        # Bouton pour faire la prédiction
-        if st.sidebar.button("Faire une prédiction"):
-            prediction, probability = predict(inputs)
-            st.sidebar.subheader('Résultats de la Prédiction')
-            st.sidebar.write(f"Prédiction: {'Classe 1' if prediction == 1 else 'Classe 0'}")
-            st.sidebar.write(f"Probabilité de Classe 1: {probability:.2f}")
-
-            # Barre de progression affichant le % de chance de remboursement
-            progress_bar = st.sidebar.progress(0)
-            for i in range(round(probability * 100)):
-                progress_bar.progress(i + 1)
-
-            # Affichage de la prédiction
-            if prediction == 1:
-                st.sidebar.error("Crédit refusé !")
-            elif prediction == 0:
-                st.sidebar.success("Crédit accordé !")
-            
-            ##########
-            # EXPOSITION DES SHAP #
-            ##########
-            feat_number = min(30, len(df.columns) - 1)
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.header("Explication Locale")
-                base64_image = request_shap_waterfall_chart(client_id, feat_number)
-                show_image_from_base64(base64_image)
-                
-            with col2:
-                st.header("Explication Globale")
-                base64_image = request_shap_summary_plot(feat_number)
-                show_image_from_base64(base64_image)
-
-if __name__ == '__main__':
-    main()
+        inputs = {
