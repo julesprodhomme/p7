@@ -78,7 +78,7 @@ def predict(input_data):
 
 # Fonction pour afficher les explications SHAP
 def show_shap_explanation(input_data, xgb_model):
-    print("1")
+    st.header("1")
     try:
         # Créer un explainer SHAP pour le modèle XGBoost
         explainer = shap.TreeExplainer(xgb_model)
@@ -100,12 +100,12 @@ def show_shap_explanation(input_data, xgb_model):
         st.pyplot(plt.gcf())
     except Exception as e:
         st.error(f"Erreur avec SHAP: {e}")
-    print("final")
+    st.header("Final")
         
 
 # Fonction pour afficher l'importance des caractéristiques
 def show_feature_importance(xgb_model):
-    print("A")
+    st.header("A")
     try:
         # Extraire les importances des caractéristiques
         feature_importances = xgb_model.feature_importances_
@@ -131,7 +131,7 @@ def show_feature_importance(xgb_model):
         st.pyplot(plt.gcf())
     except Exception as e:
         st.error(f"Erreur avec l'importance des caractéristiques: {e}")
-    print("Ending")
+    st.header("Ending")
 
 # Interface Streamlit
 def main():
