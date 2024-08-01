@@ -80,8 +80,12 @@ def predict(input_data):
 def show_shap_explanation(input_data, xgb_model):
     try:
         # Créer un explainer SHAP pour le modèle XGBoost
-        explainer = shap.Explainer(xgb_model)
-        input_df = pd.DataFrame([input_data])
+        explainer = shap.TreeExplainer(xgb_model)
+        
+        # Préparer les données pour SHAP
+        input_df = pd.DataFrame([input_data], columns=xgb_model.feature_names_in_)
+        
+        # Calculer les valeurs SHAP
         shap_values = explainer(input_df)
         
         st.subheader("Explication Locale")
