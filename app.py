@@ -6,6 +6,7 @@ import base64
 from io import StringIO
 import pickle
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Chargement du modèle XGBoost depuis le fichier pickle
 model_path = 'XGBoostModel.pkl'
@@ -88,7 +89,8 @@ def request_shap_waterfall_chart(client_id, feat_number):
     client_data = get_client_data(client_id)
     df_client = pd.DataFrame([client_data])
     
-    explainer = shap.Explainer(model)
+    # Utiliser TreeExplainer pour le modèle XGBoost
+    explainer = shap.TreeExplainer(model)
     shap_values = explainer(df_client)
     
     # Créer un graphique SHAP local
@@ -105,10 +107,10 @@ def request_shap_waterfall_chart(client_id, feat_number):
     return img_base64
 
 # Fonction pour obtenir l'explication globale de SHAP
-def request_shap_waterfall_chart_global(feat_number):
-    # Obtenir les valeurs SHAP globales
-    explainer = shap.Explainer(model)
-    shap_values = explainer(df.drop(columns=['TARGET']))
+def request_shap_summary_plot(feat_number):
+    # Utiliser TreeExplainer pour le modèle XGBoost
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(df.drop(columns=['TARGET']))
     
     # Créer un graphique SHAP global
     plt.figure(figsize=(6, 4))
@@ -190,7 +192,7 @@ def main():
                 
             with col2:
                 st.header("Explication Globale")
-                base64_image = request_shap_waterfall_chart_global(feat_number)
+                base64_image = request_shap_summary_plot(feat_number)
                 show_image_from_base64(base64_image)
 
 if __name__ == '__main__':
