@@ -1,32 +1,31 @@
 import pandas as pd
 import streamlit as st
-import pickle
+import mlflow
+import mlflow.sklearn
+import base64
 import shap
 import matplotlib.pyplot as plt
-from imblearn.pipeline import Pipeline
 
-# Chargement du modèle depuis un fichier .pkl
-model_path = 'XGBoostModel.pkl'
+# Configurer l'URI de suivi MLflow
+mlflow.set_tracking_uri("http://localhost:5000")
 
-def load_model(path):
+# Chargement du modèle complet (pipeline)
+model_name = "XGBoostModel"
+model_version = "1"  # Mettez à jour si vous avez plusieurs versions
+model_uri = f"models:/{model_name}/{model_version}"
+
+def load_model(uri):
     try:
-        with open(path, 'rb') as file:
-            return pickle.load(file)
+        return mlflow.sklearn.load_model(uri)
     except Exception as e:
         st.error(f"Erreur lors du chargement du modèle: {e}")
         return None
 
-model = load_model(model_path)
+model = load_model(model_uri)
 
 # Vérifiez si le modèle a été chargé avec succès
 if model is None:
     st.stop()
-
-# Vérifier si le modèle est un pipeline et extraire le modèle XGBoost
-if isinstance(model, Pipeline):
-    xgb_model = model.named_steps['xgbclassifier']  # Assurez-vous que le nom correspond à votre pipeline
-else:
-    xgb_model = model
 
 # Chargement des données depuis le CSV
 dataset_path = 'X_train_smote.csv'
@@ -77,61 +76,19 @@ def predict(input_data):
     return predictions[0], probabilities[0]
 
 # Fonction pour afficher les explications SHAP
-def show_shap_explanation(input_data, xgb_model):
-    try:
-        # Créer un explainer SHAP pour le modèle XGBoost
-        explainer = shap.TreeExplainer(xgb_model)
-        
-        # Préparer les données pour SHAP
-        if hasattr(xgb_model, 'feature_names_in_'):
-            feature_names = xgb_model.feature_names_in_
-        else:
-            feature_names = [f'Feature {i}' for i in range(len(input_data))]
+def show_shap_explanation(input_data, model):
+    explainer = shap.Explainer(model.named_steps['xgbclassifier'])
+    shap_values = explainer(pd.DataFrame([input_data]))
+    
+    st.subheader("Explication Locale")
+    plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
+    shap.waterfall_plot(shap_values[0], show=False)
+    st.pyplot(plt.gcf())
 
-        input_df = pd.DataFrame([input_data], columns=feature_names)
-        
-        # Calculer les valeurs SHAP
-        shap_values = explainer(input_df)
-        
-        st.subheader("Explication Locale")
-        plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
-        shap.waterfall_plot(shap_values[0])
-        st.pyplot(plt.gcf())
-        
-        st.subheader("Explication Globale")
-        plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
-        shap.summary_plot(shap_values, input_df, plot_type="bar", show=False)
-        st.pyplot(plt.gcf())
-    except Exception as e:
-        st.error(f"Erreur avec SHAP: {e}")
-
-# Fonction pour afficher l'importance des caractéristiques
-def show_feature_importance(xgb_model):
-    try:
-        # Extraire les importances des caractéristiques
-        feature_importances = xgb_model.feature_importances_
-
-        # Récupérer les noms des caractéristiques
-        if hasattr(xgb_model, 'feature_names_in_'):
-            feature_names = xgb_model.feature_names_in_
-        else:
-            feature_names = [f'Feature {i}' for i in range(len(feature_importances))]
-
-        # Créer un DataFrame pour les importances
-        importance_df = pd.DataFrame({
-            'Feature': feature_names,
-            'Importance': feature_importances
-        }).sort_values(by='Importance', ascending=False)
-
-        st.subheader("Importance des Caractéristiques")
-        plt.figure(figsize=(10, 8))
-        plt.barh(importance_df['Feature'], importance_df['Importance'], color='skyblue')
-        plt.xlabel('Importance')
-        plt.title('Importance des Caractéristiques selon XGBoost')
-        plt.gca().invert_yaxis()
-        st.pyplot(plt.gcf())
-    except Exception as e:
-        st.error(f"Erreur avec l'importance des caractéristiques: {e}")
+    st.subheader("Explication Globale")
+    plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
+    shap.summary_plot(shap_values, pd.DataFrame([input_data]), plot_type="bar", show=False)
+    st.pyplot(plt.gcf())
 
 # Interface Streamlit
 def main():
@@ -167,7 +124,7 @@ def main():
         st.sidebar.dataframe(display_data, use_container_width=True)
         
         # Préparer les données pour la prédiction
-        inputs = {feature: client_data.get(feature, 0.0) for feature in (model.feature_names_in_ if hasattr(model, 'feature_names_in_') else display_columns)}
+        inputs = {feature: client_data.get(feature, 0.0) for feature in model.feature_names_in_}
         
         # Bouton pour faire la prédiction
         if st.sidebar.button("Faire une prédiction"):
@@ -187,13 +144,8 @@ def main():
             elif prediction == 0:
                 st.sidebar.success("Crédit accordé !")
 
-            # Case à cocher pour afficher l'importance des caractéristiques
-            if st.sidebar.checkbox('Afficher l\'importance des caractéristiques'):
-                show_feature_importance(xgb_model)
-
             # Afficher l'explication de la prédiction
-            if st.sidebar.checkbox('Afficher l\'explication SHAP'):
-                show_shap_explanation(inputs, xgb_model)
+            show_shap_explanation(inputs, model)
 
 if __name__ == '__main__':
     main()
