@@ -1,27 +1,22 @@
 import pandas as pd
 import streamlit as st
-import mlflow
-import mlflow.sklearn
+import pickle
 import base64
 import shap
 import matplotlib.pyplot as plt
 
-# Configurer l'URI de suivi MLflow
-mlflow.set_tracking_uri("http://localhost:5000")
+# Chargement du modèle depuis un fichier .pkl
+model_path = 'XGBoostModel.pkl'
 
-# Chargement du modèle complet (pipeline)
-model_name = "XGBoostModel"
-model_version = "1"  # Mettez à jour si vous avez plusieurs versions
-model_uri = f"models:/{model_name}/{model_version}"
-
-def load_model(uri):
+def load_model(path):
     try:
-        return mlflow.sklearn.load_model(uri)
+        with open(path, 'rb') as file:
+            return pickle.load(file)
     except Exception as e:
         st.error(f"Erreur lors du chargement du modèle: {e}")
         return None
 
-model = load_model(model_uri)
+model = load_model(model_path)
 
 # Vérifiez si le modèle a été chargé avec succès
 if model is None:
@@ -78,14 +73,8 @@ def predict(input_data):
 # Fonction pour afficher les explications SHAP
 def show_shap_explanation(input_data, model):
     try:
-        # Si le modèle est un pipeline, utiliser l'étape XGBoost
-        if hasattr(model, 'named_steps') and 'xgbclassifier' in model.named_steps:
-            xgb_model = model.named_steps['xgbclassifier']
-        else:
-            xgb_model = model
-
         # Créer un explainer SHAP pour le modèle XGBoost
-        explainer = shap.Explainer(xgb_model)
+        explainer = shap.Explainer(model)
         shap_values = explainer(pd.DataFrame([input_data]))
 
         st.subheader("Explication Locale")
