@@ -6,10 +6,22 @@ import base64
 import shap
 import matplotlib.pyplot as plt
 
+# Configurer l'URI de suivi MLflow
+mlflow.set_tracking_uri("http://localhost:5000")
 
 # Chargement du modèle complet (pipeline)
-model_name = "XGBoostModel.pkl"
+model_name = "XGBoostModel"
+model_version = "1"  # Mettez à jour si vous avez plusieurs versions
+model_uri = f"models:/{model_name}/{model_version}"
 
+def load_model(uri):
+    try:
+        return mlflow.sklearn.load_model(uri)
+    except Exception as e:
+        st.error(f"Erreur lors du chargement du modèle: {e}")
+        return None
+
+model = load_model(model_uri)
 
 # Vérifiez si le modèle a été chargé avec succès
 if model is None:
@@ -122,4 +134,28 @@ def main():
         st.sidebar.dataframe(display_data, use_container_width=True)
         
         # Préparer les données pour la prédiction
-        inputs = {
+        inputs = {feature: client_data.get(feature, 0.0) for feature in model.feature_names_in_}
+        
+        # Bouton pour faire la prédiction
+        if st.sidebar.button("Faire une prédiction"):
+            prediction, probability = predict(inputs)
+            st.sidebar.subheader('Résultats de la Prédiction')
+            st.sidebar.write(f"Prédiction: {'Classe 1' if prediction == 1 else 'Classe 0'}")
+            st.sidebar.write(f"Probabilité de Classe 1: {probability:.2f}")
+
+            # Barre de progression affichant le % de chance de remboursement
+            progress_bar = st.sidebar.progress(0)
+            for i in range(round(probability * 100)):
+                progress_bar.progress(i + 1)
+
+            # Affichage de la prédiction
+            if prediction == 1:
+                st.sidebar.error("Crédit refusé !")
+            elif prediction == 0:
+                st.sidebar.success("Crédit accordé !")
+
+            # Afficher l'explication de la prédiction
+            show_shap_explanation(inputs, model)
+
+if __name__ == '__main__':
+    main()
