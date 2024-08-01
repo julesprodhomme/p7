@@ -23,10 +23,10 @@ if model is None:
     st.stop()
 
 # Vérifier si le modèle est un pipeline et extraire le modèle XGBoost
-if isinstance(model, Pipeline):
-    xgb_model = model.named_steps['xgbclassifier']  # Assurez-vous que le nom correspond à votre pipeline
-else:
-    xgb_model = model
+#if isinstance(model, Pipeline):
+    #xgb_model = model.named_steps['xgbclassifier']  # Assurez-vous que le nom correspond à votre pipeline
+#else:
+xgb_model = model
 
 # Chargement des données depuis le CSV
 dataset_path = 'X_train_smote.csv'
@@ -64,7 +64,7 @@ def get_client_data(client_id):
     
     # Ajouter des colonnes manquantes avec des valeurs par défaut si nécessaire
     for feature in model.feature_names_in_:
-        st.header(type(feature))
+        #st.header(type(feature))
         if feature not in client_data:
             client_data[feature] = 0.0
     
@@ -87,7 +87,9 @@ def show_shap_explanation(input_data, xgb_model):
         
         # Préparer les données pour SHAP
         st.header(xgb_model.feature_names_in_)
-        input_df = pd.DataFrame([input_data], columns=xgb_model.feature_names_in_)
+        #input_df = pd.DataFrame([input_data], columns=xgb_model.feature_names_in_)
+        input_df = pd.DataFrame(input_data)
+
         st.header("3")
         
         # Calculer les valeurs SHAP
