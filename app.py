@@ -100,6 +100,34 @@ def show_shap_explanation(input_data, xgb_model):
     except Exception as e:
         st.error(f"Erreur avec SHAP: {e}")
 
+# Fonction pour afficher l'importance des caractéristiques
+def show_feature_importance(xgb_model):
+    try:
+        # Extraire les importances des caractéristiques
+        feature_importances = xgb_model.feature_importances_
+
+        # Récupérer les noms des caractéristiques
+        if hasattr(xgb_model, 'feature_names_in_'):
+            feature_names = xgb_model.feature_names_in_
+        else:
+            feature_names = [f'Feature {i}' for i in range(len(feature_importances))]
+
+        # Créer un DataFrame pour les importances
+        importance_df = pd.DataFrame({
+            'Feature': feature_names,
+            'Importance': feature_importances
+        }).sort_values(by='Importance', ascending=False)
+
+        st.subheader("Importance des Caractéristiques")
+        plt.figure(figsize=(10, 8))
+        plt.barh(importance_df['Feature'], importance_df['Importance'], color='skyblue')
+        plt.xlabel('Importance')
+        plt.title('Importance des Caractéristiques selon XGBoost')
+        plt.gca().invert_yaxis()
+        st.pyplot(plt.gcf())
+    except Exception as e:
+        st.error(f"Erreur avec l'importance des caractéristiques: {e}")
+
 # Interface Streamlit
 def main():
     st.set_page_config(page_title='Prédiction de Crédit', page_icon=':credit_card:', layout='wide', initial_sidebar_state='auto')
@@ -153,6 +181,10 @@ def main():
                 st.sidebar.error("Crédit refusé !")
             elif prediction == 0:
                 st.sidebar.success("Crédit accordé !")
+
+            # Case à cocher pour afficher l'importance des caractéristiques
+            if st.sidebar.checkbox('Afficher l\'importance des caractéristiques'):
+                show_feature_importance(xgb_model)
 
             # Afficher l'explication de la prédiction
             show_shap_explanation(inputs, xgb_model)
