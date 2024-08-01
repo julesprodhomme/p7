@@ -80,17 +80,18 @@ def predict(input_data):
 def show_shap_explanation(input_data, xgb_model):
     try:
         # Créer un explainer SHAP pour le modèle XGBoost
-        explainer = shap.TreeExplainer(xgb_model)
-        shap_values = explainer.shap_values(pd.DataFrame([input_data]))
-
+        explainer = shap.Explainer(xgb_model)
+        input_df = pd.DataFrame([input_data])
+        shap_values = explainer(input_df)
+        
         st.subheader("Explication Locale")
         plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
-        shap.waterfall_plot(shap_values[0][0], show=False)
+        shap.waterfall_plot(shap_values[0])
         st.pyplot(plt.gcf())
-
+        
         st.subheader("Explication Globale")
         plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
-        shap.summary_plot(shap_values, pd.DataFrame([input_data]), plot_type="bar", show=False)
+        shap.summary_plot(shap_values, input_df, plot_type="bar", show=False)
         st.pyplot(plt.gcf())
     except Exception as e:
         st.error(f"Erreur avec SHAP: {e}")
