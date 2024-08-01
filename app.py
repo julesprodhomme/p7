@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 import pickle
-import base64
 import shap
 import matplotlib.pyplot as plt
 
@@ -74,12 +73,12 @@ def predict(input_data):
 def show_shap_explanation(input_data, model):
     try:
         # Créer un explainer SHAP pour le modèle XGBoost
-        explainer = shap.Explainer(model)
-        shap_values = explainer(pd.DataFrame([input_data]))
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(pd.DataFrame([input_data]))
 
         st.subheader("Explication Locale")
         plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
-        shap.waterfall_plot(shap_values[0], show=False)
+        shap.waterfall_plot(shap_values[0][0], show=False)
         st.pyplot(plt.gcf())
 
         st.subheader("Explication Globale")
