@@ -10,10 +10,6 @@ import matplotlib.pyplot as plt
 
 # Chargement du modèle complet (pipeline)
 model_name = "XGBoostModel"
-model_version = "1"  # Mettez à jour si vous avez plusieurs versions
-model_uri = f"models:/{model_name}/{model_version}"
-
-model = load_model(model_uri)
 
 # Vérifiez si le modèle a été chargé avec succès
 if model is None:
