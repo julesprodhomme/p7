@@ -59,7 +59,11 @@ def get_client_data(client_id):
     client_data = client_data.drop(columns=['SK_ID_CURR', 'TARGET']).iloc[0].to_dict()
     
     # Ajouter des colonnes manquantes avec des valeurs par défaut si nécessaire
-    feature_names = model.get_booster().feature_names if hasattr(model.get_booster(), 'feature_names') else df.columns.tolist()
+    if hasattr(model, 'feature_names_in_'):
+        feature_names = model.feature_names_in_
+    else:
+        feature_names = df.drop(columns=['SK_ID_CURR', 'TARGET']).columns.tolist()
+    
     for feature in feature_names:
         if feature not in client_data:
             client_data[feature] = 0.0
@@ -153,7 +157,7 @@ def main():
         st.sidebar.dataframe(display_data, use_container_width=True)
         
         # Préparer les données pour la prédiction
-        inputs = {feature: client_data.get(feature, 0.0) for feature in model.get_booster().feature_names if feature in client_data}
+        inputs = {feature: client_data.get(feature, 0.0) for feature in model.feature_names_in_}
         
         # Bouton pour faire la prédiction
         if st.sidebar.button("Faire une prédiction"):
