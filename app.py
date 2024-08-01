@@ -64,7 +64,7 @@ def get_client_data(client_id):
     
     # Ajouter des colonnes manquantes avec des valeurs par défaut si nécessaire
     for feature in model.feature_names_in_:
-        st.header(feature)
+        st.header(type(feature))
         if feature not in client_data:
             client_data[feature] = 0.0
     
