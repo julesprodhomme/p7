@@ -177,8 +177,8 @@ def main():
         st.sidebar.dataframe(display_data, use_container_width=True)
         
         # Préparer les données pour la prédiction
-        #inputs = {feature: client_data.get(feature, 0.0) for feature in model.feature_names_in_}
-        inputs = {feature: client_data.get(feature).values for feature in model.feature_names_in_}
+        inputs = {feature: client_data.get(feature, 0.0) for feature in model.feature_names_in_}
+        #inputs = {feature: client_data.get(feature).values for feature in model.feature_names_in_}
         
         # Bouton pour faire la prédiction
         if st.sidebar.button("Faire une prédiction"):
