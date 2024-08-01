@@ -32,9 +32,52 @@ else:
 dataset_path = 'X_train_smote.csv'
 try:
     df = pd.read_csv(dataset_path)
+    if 'SK_ID_CURR' not in df.columns:
+        raise ValueError("La colonne 'SK_ID_CURR' est manquante dans le fichier CSV.")
 except Exception as e:
     st.error(f"Erreur lors du chargement des données: {e}")
     st.stop()
+
+# Dictionnaire de mappage des noms de colonnes
+column_mapping = {
+    'AMT_INCOME_TOTAL': "Revenu total",
+    'CNT_CHILDREN': "Nombre d'enfants",
+    'CODE_GENDER': "Genre",
+    'FLAG_OWN_CAR': "Possède un véhicule",
+    'FLAG_OWN_REALTY': "Propriétaire immobilier",
+    'NAME_EDUCATION_TYPE': "Niveau académique",
+    'NAME_FAMILY_STATUS': "Statut familial",
+    'NAME_HOUSING_TYPE': "Type de logement",
+    'NAME_INCOME_TYPE': "Type de revenu",
+    'OCCUPATION_TYPE': "Emploi"
+}
+
+# Colonnes à afficher sur le dashboard
+display_columns = list(column_mapping.keys())
+
+# Fonction pour obtenir les données du client en fonction de l'identifiant
+def get_client_data(client_id):
+    client_data = df[df['SK_ID_CURR'] == client_id]
+    
+    if client_data.empty:
+        st.error(f"Identifiant de client non trouvé: {client_id}")
+        return {}
+    
+    client_data = client_data.drop(columns=['SK_ID_CURR', 'TARGET']).iloc[0].to_dict()
+    
+    # Ajouter des colonnes manquantes avec des valeurs par défaut si nécessaire
+    for feature in model.feature_names_in_:
+        if feature not in client_data:
+            client_data[feature] = 0.0
+    
+    return client_data
+
+# Fonction pour faire des prédictions
+def predict(input_data):
+    df = pd.DataFrame([input_data])
+    predictions = model.predict(df)
+    probabilities = model.predict_proba(df)[:, 1]
+    return predictions[0], probabilities[0]
 
 # Fonction pour afficher l'importance des caractéristiques
 def show_feature_importance(xgb_model):
@@ -80,6 +123,10 @@ def main():
     if client_id:
         # Obtenez les données du client
         client_data = get_client_data(client_id)
+        
+        # Vérifier si client_data est valide
+        if not client_data:
+            return
         
         # Filtrer les données du client pour ne garder que les colonnes désirées
         filtered_data = {key: client_data.get(key, None) for key in display_columns}
