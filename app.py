@@ -199,7 +199,7 @@ def main():
                 st.sidebar.success("Crédit accordé !")
 
             # Case à cocher pour afficher l'importance des caractéristiques
-            if st.sidebar.checkbox('Afficher l\'importance des caractéristiques'):
+            #if st.sidebar.checkbox('Afficher l\'importance des caractéristiques'):
                 show_feature_importance(xgb_model)
 
             # Afficher l'explication de la prédiction
