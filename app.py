@@ -139,8 +139,8 @@ def show_feature_importance(xgb_model):
         #plt.title('Importance des Caractéristiques selon XGBoost')
         #plt.gca().invert_yaxis()
         #st.pyplot(plt.gcf())
-    #except Exception as e:
-        #st.error(f"Erreur avec l'importance des caractéristiques: {e}")
+    except Exception as e:
+        st.error(f"Erreur avec l'importance des caractéristiques: {e}")
     #st.header("Ending")
 
 # Interface Streamlit
