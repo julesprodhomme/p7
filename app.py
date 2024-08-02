@@ -81,27 +81,27 @@ def predict(input_data):
 
 # Fonction pour afficher les explications SHAP
 def show_shap_explanation(input_data, xgb_model):
-    st.header("1")
+    
     try:
         # Créer un explainer SHAP pour le modèle XGBoost
         explainer = shap.TreeExplainer(xgb_model)
-        st.header("2")
+        
         
         # Préparer les données pour SHAP
         #st.header(xgb_model.feature_names_in_)
         #input_df = pd.DataFrame([input_data], columns=xgb_model.feature_names_in_)
 
-        st.header("3")
+        
         
         # Calculer les valeurs SHAP
         shap_values = explainer(pd.DataFrame([input_data]))
-        st.header("4")
+        
         
         st.subheader("Explication Locale")
         plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
         shap.waterfall_plot(shap_values[0])
         st.pyplot(plt.gcf())
-        st.header("5")
+        
         
         st.subheader("Explication Globale")
         plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
