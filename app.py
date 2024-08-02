@@ -115,7 +115,7 @@ def show_shap_explanation(input_data, xgb_model):
 
 # Fonction pour afficher l'importance des caractéristiques
 def show_feature_importance(xgb_model):
-    st.header("A")
+    #st.header("A")
     try:
         # Extraire les importances des caractéristiques
         feature_importances = xgb_model.feature_importances_
@@ -141,7 +141,7 @@ def show_feature_importance(xgb_model):
         #st.pyplot(plt.gcf())
     except Exception as e:
         st.error(f"Erreur avec l'importance des caractéristiques: {e}")
-    st.header("Ending")
+    #st.header("Ending")
 
 # Interface Streamlit
 def main():
