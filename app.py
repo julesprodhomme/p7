@@ -98,19 +98,19 @@ def show_shap_explanation(input_data, xgb_model):
         
         
         st.subheader("Explication Locale")
-        plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
+        plt.figure(figsize=(4, 2))  # Réduire la taille du graphique
         shap.waterfall_plot(shap_values[0])
         st.pyplot(plt.gcf())
         
         
         st.subheader("Explication Globale")
-        plt.figure(figsize=(8, 4))  # Réduire la taille du graphique
+        plt.figure(figsize=(4, 2))  # Réduire la taille du graphique
         shap.summary_plot(shap_values, pd.DataFrame([input_data]), plot_type="bar", show=False)
         st.pyplot(plt.gcf())
-        st.header("6")
+        
     except Exception as e:
         st.error(f"Erreur avec SHAP: {e}")
-    st.header("Final")
+    
         
 
 # Fonction pour afficher l'importance des caractéristiques
