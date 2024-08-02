@@ -151,7 +151,7 @@ def main():
     # TITRE #
     #########
     st.header("Prédiction de Solvabilité")
-    st.markdown("<h1 style='text-align: center; border: 2px solid black; padding: 10px; background-color: #cccccc; border-radius: 10px;'> Prédiction et Explication de Solvabilité</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; border: 5px solid black; padding: 5px; background-color: #cccccc; border-radius: 10px;'> Explication de Solvabilité</h1>", unsafe_allow_html=True)
 
     ############
     # SIDEBAR #
