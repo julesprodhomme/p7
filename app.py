@@ -132,13 +132,13 @@ def show_feature_importance(xgb_model):
             'Importance': feature_importances
         }).sort_values(by='Importance', ascending=False)
 
-        st.subheader("Importance des Caractéristiques")
-        plt.figure(figsize=(10, 8))
-        plt.barh(importance_df['Feature'], importance_df['Importance'], color='skyblue')
-        plt.xlabel('Importance')
-        plt.title('Importance des Caractéristiques selon XGBoost')
-        plt.gca().invert_yaxis()
-        st.pyplot(plt.gcf())
+        #st.subheader("Importance des Caractéristiques")
+        #plt.figure(figsize=(10, 8))
+        #plt.barh(importance_df['Feature'], importance_df['Importance'], color='skyblue')
+        #plt.xlabel('Importance')
+        #plt.title('Importance des Caractéristiques selon XGBoost')
+        #plt.gca().invert_yaxis()
+        #st.pyplot(plt.gcf())
     except Exception as e:
         st.error(f"Erreur avec l'importance des caractéristiques: {e}")
     st.header("Ending")
