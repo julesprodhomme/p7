@@ -145,13 +145,14 @@ def show_feature_importance(xgb_model):
 
 # Interface Streamlit
 def main():
-    st.set_page_config(page_title='Prédiction de Crédit', page_icon=':credit_card:', layout='wide', initial_sidebar_state='auto')
+    st.set_page_config(page_title='Prédiction de Crédit', layout='wide', initial_sidebar_state='auto')
 
     #########
     # TITRE #
     #########
     st.header("Prédiction de Solvabilité")
-    st.markdown("<h1 style='text-align: center; border: 5px solid black; padding: 5px; background-color: #cccccc; border-radius: 10px;'> Explication de Solvabilité</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>Explication de Solvabilité</h1>", unsafe_allow_html=True)
+
 
     ############
     # SIDEBAR #
