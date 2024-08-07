@@ -18,5 +18,5 @@ Les données utilisées pour ce projet proviennent de la compétition Kaggle sur
 
 ## Déploiement du Dashboard
 
-Le tableau de bord interactif est hébergé sur Render. Vous pouvez y accéder via le lien suivant : [Credit Scoring Prediction API]((https://p7-gl2v.onrender.com/)).
+Le tableau de bord interactif est hébergé sur Render. Vous pouvez y accéder via le lien suivant : [Credit Scoring Prediction API](https://p7-gl2v.onrender.com/).
 
