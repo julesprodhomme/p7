@@ -1,1 +1,31 @@
 
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main  #envoi de modifications à la branche principale
+
+jobs:
+  test:
+    runs-on: ubuntu-latest  # Utilise la dernière version d'Ubuntu pour exécuter les tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        #  extrait le code source du dépôt
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'  # Spécifiez la version de Python que vous utilisez
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+        # Installe les dépendances nécessaires pour exécuter votre API et les tests
+
+      - name: Run tests
+        run: |
+          pytest
+        # Exécute les tests avec pytest
