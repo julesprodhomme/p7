@@ -171,8 +171,7 @@ def show_bivariate_analysis(df, feature1='AMT_INCOME_TOTAL', feature2='CNT_CHILD
     st.subheader("Analyse Bivariée entre Revenu Total et Nombre d'Enfants")
     
     if feature1 in df.columns and feature2 in df.columns:
-        st.write(f"Colonnes disponibles : {df.columns.tolist()}")  # Afficher les colonnes disponibles pour le débogage
-        
+        # Assurez-vous que les caractéristiques sont numériques
         if pd.api.types.is_numeric_dtype(df[feature1]) and pd.api.types.is_numeric_dtype(df[feature2]):
             plt.figure(figsize=(10, 6))
             
@@ -187,6 +186,7 @@ def show_bivariate_analysis(df, feature1='AMT_INCOME_TOTAL', feature2='CNT_CHILD
             st.error(f"Les colonnes {feature1} et {feature2} doivent être numériques.")
     else:
         st.error("Une ou les deux caractéristiques sélectionnées ne sont pas présentes dans le dataset.")
+
 
 # Interface Streamlit
 def main():
